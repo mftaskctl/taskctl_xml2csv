@@ -5,7 +5,7 @@ $(function () {
     })
     .val( sessionStorage.getItem("xml").replace(/↵/g, '\n'));
 
-  require.config({ paths: { vs: "./static/monaco-editor/min/vs" } });
+  require.config({ paths: { vs: "./static/monaco-editor/vs" } });
   require(["vs/editor/editor.main"], function () {
     monaco.editor.create(document.getElementById("xml"), {
       language: "xml",
