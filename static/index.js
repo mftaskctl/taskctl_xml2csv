@@ -81,7 +81,11 @@ $(function () {
     const infoCsv = `${props.join(",")}\n${jobinfos
       .map((job) => {
         return props
-          .map((prop) => (typeof job[prop] == "undefined" ? "" : job[prop]))
+          .map((prop) => {
+            const val = (typeof job[prop] == "undefined" ? "" : job[prop]);
+            if (typeof val == 'string' && val.indexOf(',')) val = JSON.stringify(val);
+            return val;
+          })
           .join(",");
       })
       .join("\n")}
