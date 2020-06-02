@@ -83,7 +83,7 @@ $(function () {
         return props
           .map((prop) => {
             const val = (typeof job[prop] == "undefined" ? "" : job[prop]);
-            if (typeof val == 'string' && val.indexOf(',')) val = JSON.stringify(val);
+            if (typeof val == 'string' && val.indexOf(',') >= 0) val = JSON.stringify(val);
             return val;
           })
           .join(",");
