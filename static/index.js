@@ -78,7 +78,7 @@ $(function () {
     const props = "name,typename,progname,para,exppara,jobdesc,autorun,prevshell,nextshell,agentid,hostuser,datetype,period,timingplan,lean,ostr,errdelay,ignoreerr,maxnum,cyclecount,cycleinterval,cyclebreak,issplit,splitcount,priority,timeout,virresource,condition,successv,warnningv,errorv,failedv,monititle".split(
       ","
     );
-    const infoCsv = `${props.join(",")}${jobinfos
+    const infoCsv = `${props.join(",")}\n${jobinfos
       .map((job) => {
         return props
           .map((prop) => (typeof job[prop] == "undefined" ? "" : job[prop]))
