@@ -1,9 +1,17 @@
 $(function () {
   $("#xml")
     .bind("input propertychange", function () {
-      sessionStorage.setItem("xml", $(this).val());
+      sessionStorage.setItem("xml", $(this).val().replace(/↵/g, '\n'));
     })
-    .val(sessionStorage.getItem("xml"));
+    .val( sessionStorage.getItem("xml").replace(/↵/g, '\n'));
+
+  require.config({ paths: { vs: "./static/monaco-editor/min/vs" } });
+  require(["vs/editor/editor.main"], function () {
+    monaco.editor.create(document.getElementById("xml"), {
+      language: "xml",
+      theme: "vs-dark",
+    });
+  });
 
   $("#run").click(function () {
     var xml = $("#xml").val();
@@ -88,12 +96,12 @@ $(function () {
           array.push(`${jobname},${prevjob}`);
         });
         // 排除依赖关系
-        const leans = job.lean ? job.lean.split(',') : [];
+        const leans = job.lean ? job.lean.split(",") : [];
         leans.forEach((prevjob) => {
           prevjob = $.trim(prevjob);
           if (!prevjob) return;
           array.push(`${jobname},${prevjob}`);
-        })
+        });
         return array;
       }, [])
       .join("\n")}
