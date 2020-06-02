@@ -54,7 +54,6 @@ $(function () {
         job.typename = nodename;
 
         jobinfos.push(job);
-        console.log(job, i);
 
         const $attrs = $(el).children();
         for (let j = 0; j < $attrs.length; j++) {
@@ -82,7 +81,7 @@ $(function () {
       .map((job) => {
         return props
           .map((prop) => {
-            const val = (typeof job[prop] == "undefined" ? "" : job[prop]);
+            let val = (typeof job[prop] == "undefined" ? "" : job[prop]);
             if (typeof val == 'string' && val.indexOf(',') >= 0) val = JSON.stringify(val);
             return val;
           })
