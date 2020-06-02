@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TASKCTL XML2CVS Tools</title>
+  <link rel="stylesheet" href="./static/index.css"/>
+<body>
+  <div class="layout">
+    <div class="layout-left">
+    <div class="nav">
+      <span>TASKCTL XML</span>
+      <button class="btn btn-success" id="run">运行</button>
+    </div>
+    <textarea id="xml" placeholder="请输入"></textarea>
+  </div>
+    <div class="layout-right">
+      <div class="layout-top">
+        <div class="nav">
+          <span>CSV Job关系</span>
+          <button id="btn-csv-rela" class="btn btn-success">导出</button>
+        </div>
+        <textarea id="jobrel" class="area-jobrel" readonly></textarea>
+      </div>
+      <div class="layout-bottom">
+        <div class="nav">
+          <span>CSV Job信息</span>
+          <button id="btn-csv-info" class="btn btn-success">导出</button>
+        </div>
+        <textarea id="jobinfo" class="area-jobinfo" readonly></textarea>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="./static/index.js"></script>
+</body>
+</html>
