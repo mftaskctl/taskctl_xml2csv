@@ -3,18 +3,19 @@ $(function () {
     .bind("input propertychange", function () {
       sessionStorage.setItem("xml", $(this).val().replace(/↵/g, '\n'));
     })
-    .val( sessionStorage.getItem("xml").replace(/↵/g, '\n'));
+    .val((sessionStorage.getItem("xml") || "").replace(/↵/g, '\n'));
 
-  require.config({ paths: { vs: "./static/monaco-editor/vs" } });
-  require(["vs/editor/editor.main"], function () {
-    monaco.editor.create(document.getElementById("xml"), {
-      language: "xml",
-      theme: "vs-dark",
-    });
-  });
+  // require.config({ paths: { vs: "./static/monaco-editor/vs" } });
+  // require(["vs/editor/editor.main"], function () {
+  //   monaco.editor.create(document.getElementById("xml"), {
+  //     language: "xml",
+  //     theme: "vs-dark",
+  //   });
+  // });
 
   $("#run").click(function () {
     var xml = $("#xml").val();
+    $("#xml").val(xml.replace(/↵/g, '\n'))
     // console.log(xml);
 
     const $xml = $(xml);
