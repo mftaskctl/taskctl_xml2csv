@@ -23,10 +23,21 @@ $(function () {
     const jobrels = [];
     const jobinfos = [];
 
-    const excludeJobs = ["begin", "agentid", "timingplan", "end"];
+    const excludeJobs = ["begin", "end"];
+    const props = "name,typename,progname,para,exppara,jobdesc,autorun,prevshell,nextshell,agentid,hostuser,datetype,period,timingplan,lean,ostr,errdelay,ignoreerr,maxnum,cyclecount,cycleinterval,cyclebreak,issplit,splitcount,priority,timeout,virresource,condition,successv,warnningv,errorv,failedv,monititle".split(
+      ","
+    );
+    
+    const filterGroupJob = el => {
+      const nodename = $.trim(
+        (el.nodename || el.tagName || "").toLowerCase()
+      );
+      if (excludeJobs.includes(nodename)) return false;
+      if (props.includes(nodename)) return false;
+      return true;
+    };
 
     function loop($els, prevJobs = [], isSerial = false) {
-      console.log($els, $els.length);
       let latestJobs = [];
       for (let i = 0; i < $els.length; i++) {
         const el = $els[i];
@@ -37,13 +48,13 @@ $(function () {
         if (nodename == "text") continue;
         if (!nodename || nodename == "name") continue;
         if (nodename == "serial") {
-          const jobs = loop($(el).children(), prevJobs, true);
+          const jobs = loop($(el).children().filter(filterGroupJob), prevJobs, true);
           latestJobs = isSerial ? jobs : latestJobs.concat(jobs);
           if (isSerial) prevJobs = jobs;
           continue;
         }
         if (nodename == "parallel") {
-          const jobs = loop($(el).children(), prevJobs, false);
+          const jobs = loop($(el).children().filter(filterGroupJob), prevJobs, false);
           if (isSerial) prevJobs = jobs;
           latestJobs = isSerial ? jobs : latestJobs.concat(jobs);
           continue;
@@ -73,10 +84,8 @@ $(function () {
       return latestJobs;
     }
 
-    loop($xml);
-    const props = "name,typename,progname,para,exppara,jobdesc,autorun,prevshell,nextshell,agentid,hostuser,datetype,period,timingplan,lean,ostr,errdelay,ignoreerr,maxnum,cyclecount,cycleinterval,cyclebreak,issplit,splitcount,priority,timeout,virresource,condition,successv,warnningv,errorv,failedv,monititle".split(
-      ","
-    );
+    loop($xml.filter(filterGroupJob));
+   
     const infoCsv = `${props.join(",")}\n${jobinfos
       .map((job) => {
         return props
