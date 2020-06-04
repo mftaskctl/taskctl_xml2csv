@@ -15,57 +15,85 @@ $(function () {
 
   $("#run").click(function () {
     var xml = $("#xml").val();
-    $("#xml").val(xml.replace(/↵/g, '\n'))
-    // console.log(xml);
+    $("#xml").val(xml.replace(/↵/g, '\n'));
 
-    const $xml = $(xml);
-
-    const jobrels = [];
+    const $tree = $(xml);
+    // 作业信息
     const jobinfos = [];
-
-    const excludeJobs = ["begin", "end"];
-    const props = "name,typename,progname,para,exppara,jobdesc,autorun,prevshell,nextshell,agentid,hostuser,datetype,period,timingplan,lean,ostr,errdelay,ignoreerr,maxnum,cyclecount,cycleinterval,cyclebreak,issplit,splitcount,priority,timeout,virresource,condition,successv,warnningv,errorv,failedv,monititle".split(
+    // 待排除不解析的节点名称
+    const excludeNodeNames = ["begin", "end", "text"];
+    // 作业属性
+    const jobProps = "name,typename,progname,para,exppara,jobdesc,autorun,prevshell,nextshell,agentid,hostuser,datetype,period,timingplan,lean,ostr,errdelay,ignoreerr,maxnum,cyclecount,cycleinterval,cyclebreak,issplit,splitcount,priority,timeout,virresource,condition,successv,warnningv,errorv,failedv,monititle".split(
       ","
     );
     
-    const filterGroupJob = el => {
-      const nodename = $.trim(
-        (el.nodename || el.tagName || "").toLowerCase()
-      );
-      if (excludeJobs.includes(nodename)) return false;
-      if (props.includes(nodename)) return false;
-      return true;
-    };
-
-    function loop($els, prevJobs = [], isSerial = false) {
+    /**
+     * 循环解析作业树
+     * 
+     * @param {ArrayLike<HTMLElement>} $els 节点集合
+     * @param {Arrray<String>} prevJobs 依赖作业，用于平铺作业依赖关系
+     * @param {Map<String, String>} prevProps 继承属性，用于平铺作业继承属性
+     * @param {Boolean} isSerial 是否是串联组
+     * 
+     * @return {Arrray<String>} 返回执行组，最后的依赖作业
+     */
+    function loopParseJobTree($els, prevJobs = [], prevProps = {}, isSerial = false) {
       let latestJobs = [];
-      for (let i = 0; i < $els.length; i++) {
+
+      // 过滤有效的作业节点
+      // 并且处理组继承属性(单独循环原因，为了让组属性在解析组内作业之前解析)
+      const $jobEls = $els.filter((i) => {
         const el = $els[i];
         const nodename = $.trim(
           (el.nodename || el.tagName || "").toLowerCase()
         );
-        if (nodename.substr(0, 1) == "#") continue;
-        if (nodename == "text") continue;
-        if (!nodename || nodename == "name") continue;
+        // 排除备注
+        if (nodename.substr(0, 1) == "#") return false;
+        // 无效节点，理论不存在此情况
+        if (nodename == "") return false;
+        // 排除不解析的
+        if (excludeNodeNames.includes(nodename)) return false;
+
+        // 处理组属性，用于平铺继承属性
+        if (jobProps.includes(nodename)) {
+          let val = $.trim(el.innerHTML);
+          if (typeof val == 'string' && val.indexOf(',') >= 0) val = JSON.stringify(val);
+          prevProps[nodename] = val;
+          return false;
+        }
+        return true;
+      });
+
+      for (let i = 0; i < $jobEls.length; i++) {
+        const el = $jobEls[i];
+        const nodename = $.trim(
+          (el.nodename || el.tagName || "").toLowerCase()
+        );
+        
         if (nodename == "serial") {
-          const jobs = loop($(el).children().filter(filterGroupJob), prevJobs, true);
+          const jobs = loopParseJobTree($(el).children(), prevJobs, {...prevProps}, true);
           latestJobs = isSerial ? jobs : latestJobs.concat(jobs);
           if (isSerial) prevJobs = jobs;
           continue;
         }
+
         if (nodename == "parallel") {
-          const jobs = loop($(el).children().filter(filterGroupJob), prevJobs, false);
+          const jobs = loopParseJobTree($(el).children(), prevJobs, {...prevProps}, false);
           if (isSerial) prevJobs = jobs;
           latestJobs = isSerial ? jobs : latestJobs.concat(jobs);
           continue;
         }
-        if (excludeJobs.includes(nodename)) continue;
 
         const job = { name: `job_gen_${jobinfos.length}` };
-        job.typename = nodename;
-
         jobinfos.push(job);
 
+        // 赋值继承属性
+        Object.keys(prevProps).forEach(prop => {
+          job[prop] = prevProps[prop];
+        });
+
+        // 处理自身属性
+        job.typename = nodename;
         const $attrs = $(el).children();
         for (let j = 0; j < $attrs.length; j++) {
           const $attr = $attrs[j];
@@ -84,11 +112,11 @@ $(function () {
       return latestJobs;
     }
 
-    loop($xml.filter(filterGroupJob));
+    loopParseJobTree($tree);
    
-    const infoCsv = `${props.join(",")}\n${jobinfos
+    const infoCsv = `${jobProps.join(",")}\n${jobinfos
       .map((job) => {
-        return props
+        return jobProps
           .map((prop) => {
             let val = (typeof job[prop] == "undefined" ? "" : job[prop]);
             if (typeof val == 'string' && val.indexOf(',') >= 0) val = JSON.stringify(val);
