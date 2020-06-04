@@ -56,9 +56,7 @@ $(function () {
 
         // 处理组属性，用于平铺继承属性
         if (jobProps.includes(nodename)) {
-          let val = $.trim(el.innerHTML);
-          if (typeof val == 'string' && val.indexOf(',') >= 0) val = JSON.stringify(val);
-          prevProps[nodename] = val;
+          prevProps[nodename] = $.trim(el.innerHTML);
           return false;
         }
         return true;
