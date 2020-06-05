@@ -16,10 +16,16 @@ body.wait::before {
   left: 0;
   z-index: 100;
   background-color: rgba(0, 0, 0, 0.3);
-  cursor: wait;
+  cursor: wait!important;
   font-size: 40px;
   color: #fff;
   letter-spacing: 5px;
+  pointer-events: none;
+}
+
+body.wait * {
+  cursor: wait!important;
+  pointer-events: none!important;
 }
 
 .layout {
