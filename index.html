@@ -1,10 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TASKCTL Tools</title>
+  <!-- ZUI 标准版压缩后的 CSS 文件 -->
+  <link rel="stylesheet" href="//cdn.bootcss.com/zui/1.9.1/css/zui.min.css">
+
+  <!-- ZUI Javascript 依赖 jQuery -->
+  <script src="//cdn.bootcss.com/zui/1.9.1/lib/jquery/jquery.js"></script>
+  <!-- ZUI 标准版压缩后的 JavaScript 文件 -->
+  <script src="//cdn.bootcss.com/zui/1.9.1/js/zui.min.js"></script>
 </head>
+
 <body>
   <div class="tabs">
     <div class="tab" onclick="frames[0].location.href='./taskctl/index.html'">TASKCTL</div>
@@ -12,9 +21,12 @@
   </div>
   <iframe name="frame" src="./taskctl/index.html"></iframe>
   <style>
-    html, body {
-      margin: 0; padding: 0;
-      width: 100vw; height: 100vh;
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
       overflow: hidden;
     }
 
@@ -25,6 +37,7 @@
       font-size: 14px;
       user-select: none;
     }
+
     .tab {
       padding: 0 20px;
       border-radius: 10px 10px 0 0;
@@ -43,4 +56,5 @@
     }
   </style>
 </body>
+
 </html>

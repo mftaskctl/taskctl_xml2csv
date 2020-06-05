@@ -80,9 +80,16 @@ $(function () {
   // 全局变量
   const globalVars = [[/\%\%\$ODATE/g, "$(ODATE)"]];
 
+  const parseJsonStr = jsonstr => {
+    if (typeof jsonstr != 'string') return jsonstr;
+    if (!jsonstr.includes(',')) return jsonstr;
+    return JSON.parse(jsonstr);
+  }
+
   $("#run").click(function () {
     const jobinfos = [];
     const jobrelas = [];
+    const jobnames = {};
 
     let csv = $("#input").val();
     // 处理tab
@@ -113,26 +120,24 @@ $(function () {
         return record;
       }, {});
       const jobname = record["11_JOBNAME"];
-      let prev = record["47_INCOND"];
-      let next = record["53_OUTCOND"];
+      const prevCodt = record["48_INCOND_ODATE"]? parseJsonStr(record["48_INCOND_ODATE"]).split(',') : [];
+      record.prevs = record["47_INCOND"] ? parseJsonStr(record["47_INCOND"]).replace(/\_END/g, '').split(',').filter((prev, i) => {
+        // 过滤自身依赖
+        if (prev == jobname) return false;
+        // 过滤上次依赖
+        if (prevCodt[i] == 'PREV') return false;
+        return true;
+      }): [];
 
-      if (typeof prev == "string" && prev.length > 0) {
-        if (prev.includes(",")) prev = JSON.parse(prev);
-        prev.split(",").forEach((prevname) => {
-          const rela = `${jobname},${prevname}`;
-          if (jobrelas.includes(rela)) return;
-          jobrelas.push(rela);
-        });
-      }
+      const nextCodt = record["54_OUTCOND_ODATE"] ? parseJsonStr(record["54_OUTCOND_ODATE"]).split(',') : [];
+      record.nexts = record["53_OUTCOND"] ? parseJsonStr(record["53_OUTCOND"]).replace(/\_END/g, '').split(',').filter((next, i) => {
+         // 过滤自身依赖
+        if (next == jobname) return false;
+         // 过滤上次依赖
+        if (nextCodt[i] == 'PREV') return false;
+        return true;
+      }): [];
 
-      if (typeof next == "string" && next.length > 0) {
-        if (next.includes(",")) next = JSON.parse(next);
-        next.split(",").forEach((nextname) => {
-          const rela = `${nextname},${jobname}`;
-          if (jobrelas.includes(rela)) return;
-          jobrelas.push(rela);
-        });
-      }
       record["14_CMDLINE"] = record["14_CMDLINE"].replace(
         record["8_NAME"],
         record["9_VALUE"]
@@ -162,29 +167,7 @@ $(function () {
 
         // 如果保留最开始的, 不做任何处理
         if (isKeepBefore) continue;
-
-        // 如果保留后面数据
-        const prevJob = jobinfos.splice(jobIndex, 1);
-        const prev = prevJob["47_INCOND"];
-        const next = prevJob["53_OUTCOND"];
-        if (typeof prev == "string" && prev.length > 0) {
-          if (prev.includes(",")) prev = JSON.parse(prev);
-          prev.split(",").forEach((prevname) => {
-            const rela = `${jobname},${prevname}`;
-            const index = jobrelas.indexOf(rela);
-            jobrelas.splice(index, 1);
-          });
-        }
-  
-        if (typeof next == "string" && next.length > 0) {
-          if (next.includes(",")) next = JSON.parse(next);
-          next.split(",").forEach((nextname) => {
-            const rela = `${nextname},${jobname}`;
-            const index = jobrelas.indexOf(rela);
-            jobrelas.splice(index, 1);
-          });
-        }
-
+        jobinfos.splice(jobIndex, 1);
       }
       jobinfos.push(job);
       for (const { tasckctlProp, thirdProp, dict } of jobpropMap) {
@@ -201,10 +184,43 @@ $(function () {
       }
       job.progname = $.trim(job.progname.replace(/\/.\//g, '').replace(/\s/g, ' '));
       job.jobdesc = $.trim(job.jobdesc.replace(/\s/g, ' '));
-
+      jobnames[job.name] = true;
     }
 
     console.log(jobinfos);
+    // console.log(jobnames, Object.keys(jobnames), jobinfos.map(d => d.name));
+
+    const excludes = {
+      prevs: new Set(), nexts: new Set(), 
+      all: new Set()
+    };
+
+    for(const job of jobinfos) {
+      const { name: jobname, prevs = [], nexts = []} = job;
+
+      prevs.forEach(prevjobname => {
+        if (!jobnames[prevjobname]) {
+          excludes.prevs.add(prevjobname);
+          excludes.all.add(prevjobname);
+          return;
+        }
+        const rela = `${jobname},${prevjobname}`;
+        if (jobrelas.includes(rela)) return;
+        jobrelas.push(rela);
+      });
+
+      nexts.forEach(nextjobname => {
+        if (!jobnames[nextjobname]) {
+          excludes.nexts.add(nextjobname);
+          excludes.all.add(nextjobname);
+          return;
+        };
+        const rela = `${nextjobname},${jobname}`;
+        if (jobrelas.includes(rela)) return;
+        jobrelas.push(rela);
+      });
+    }
+    if (excludes.all.size) console.error(excludes);
 
     const infoCsv = `${jobProps.join(",")}\n${jobinfos
       .map((job) => {
