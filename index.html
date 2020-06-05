@@ -5,21 +5,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TASKCTL Tools</title>
-  <!-- ZUI 标准版压缩后的 CSS 文件 -->
-  <link rel="stylesheet" href="//cdn.bootcss.com/zui/1.9.1/css/zui.min.css">
-
-  <!-- ZUI Javascript 依赖 jQuery -->
+  <!-- <link rel="stylesheet" href="//cdn.bootcss.com/zui/1.9.1/css/zui.min.css">
   <script src="//cdn.bootcss.com/zui/1.9.1/lib/jquery/jquery.js"></script>
-  <!-- ZUI 标准版压缩后的 JavaScript 文件 -->
-  <script src="//cdn.bootcss.com/zui/1.9.1/js/zui.min.js"></script>
+  <script src="//cdn.bootcss.com/zui/1.9.1/js/zui.min.js"></script> -->
+
 </head>
 
 <body>
   <div class="tabs">
-    <div class="tab" onclick="frames[0].location.href='./taskctl/index.html'">TASKCTL</div>
-    <div class="tab" onclick="frames[0].location.href='./control-m/index.html'">Control-M</div>
+    <div class="tab" data-src="./taskctl/index.html">TASKCTL</div>
+    <div class="tab" data-src="./control-m/index.html">Control-M</div>
   </div>
-  <iframe name="frame" src="./taskctl/index.html"></iframe>
+  <iframe name="frame"></iframe>
   <style>
     html,
     body {
@@ -32,29 +29,55 @@
 
     .tabs {
       padding-top: 8px;
-      line-height: 40px;
+      line-height: 30px;
       background-color: rgba(0, 0, 0, 0.7);
       font-size: 14px;
       user-select: none;
     }
 
     .tab {
-      padding: 0 20px;
+      padding: 0 15px;
       border-radius: 10px 10px 0 0;
       background-color: coral;
-      opacity: 0.9;
+      opacity: 0.5;
       color: #fff;
       display: inline-block;
       cursor: pointer;
     }
 
+    .tab.active {
+      opacity: 1;
+      font-weight: bold;
+    }
+
     iframe {
       width: 100vw;
       border: 0;
-      height: calc(100vh - 48px);
+      height: calc(100vh - 38px);
       transition: all 0.3s ease;
     }
   </style>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script>
+    $(function() {
+      $('.tab').click(function() {
+        $('.tab.active').removeClass('active');
+        $(this).addClass('active');
+        const src = $(this).attr('data-src');
+        console.log(src);
+        sessionStorage.setItem('selected-src', src);
+        frames[0].location.href = src;
+      });
+
+      const src = sessionStorage.getItem('selected-src');
+      if (!src) return $('.tab:first').click();
+
+      const $tab = $(`.tab[data-src='${src}']:first`);
+      if ($tab.length == 0) return $('.tab:first').click();
+      $tab.click();
+      
+    });
+  </script>
 </body>
 
 </html>

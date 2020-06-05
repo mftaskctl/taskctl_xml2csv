@@ -74,7 +74,6 @@ $(function () {
   const jobProps = "name,typename,progname,para,exppara,jobdesc,autorun,prevshell,nextshell,agentid,hostuser,datetype,period,timingplan,lean,ostr,errdelay,ignoreerr,maxnum,cyclecount,cycleinterval,cyclebreak,issplit,splitcount,priority,timeout,virresource,condition,successv,warnningv,errorv,failedv,monititle".split(
     ","
   );
-
   const jobpropMap = getTaskctlAndControlMPropMap();
 
   // 全局变量
@@ -86,11 +85,10 @@ $(function () {
     return JSON.parse(jsonstr);
   }
 
-  $("#run").click(function () {
+  function run() {
     const jobinfos = [];
     const jobrelas = [];
     const jobnames = {};
-
     let csv = $("#input").val();
     // 处理tab
     csv = csv.replace(/\t/g, "");
@@ -121,7 +119,7 @@ $(function () {
       }, {});
       const jobname = record["11_JOBNAME"];
       const prevCodt = record["48_INCOND_ODATE"]? parseJsonStr(record["48_INCOND_ODATE"]).split(',') : [];
-      record.prevs = record["47_INCOND"] ? parseJsonStr(record["47_INCOND"]).replace(/\_END/g, '').split(',').filter((prev, i) => {
+      record.prevs = record["47_INCOND"] ? parseJsonStr(record["47_INCOND"]).split(',').filter((prev, i) => {
         // 过滤自身依赖
         if (prev == jobname) return false;
         // 过滤上次依赖
@@ -130,7 +128,7 @@ $(function () {
       }): [];
 
       const nextCodt = record["54_OUTCOND_ODATE"] ? parseJsonStr(record["54_OUTCOND_ODATE"]).split(',') : [];
-      record.nexts = record["53_OUTCOND"] ? parseJsonStr(record["53_OUTCOND"]).replace(/\_END/g, '').split(',').filter((next, i) => {
+      record.nexts = record["53_OUTCOND"] ? parseJsonStr(record["53_OUTCOND"]).split(',').filter((next, i) => {
          // 过滤自身依赖
         if (next == jobname) return false;
          // 过滤上次依赖
@@ -138,23 +136,20 @@ $(function () {
         return true;
       }): [];
 
-      record["14_CMDLINE"] = record["14_CMDLINE"].replace(
-        record["8_NAME"],
-        record["9_VALUE"]
-      );
+      // record["14_CMDLINE"] = record["14_CMDLINE"]
+      //   .replace(record["8_NAME"], `$(${record["8_NAME"]})`)
+      //   .replace(record["8_NAME"].replace("%%\\", "%%"), `$(${record["8_NAME"].replace("%%\\", "%%")})`);
 
-      record["14_CMDLINE"] = record["14_CMDLINE"].replace(
-        record["8_NAME"].replace("%%\\", "%%"),
-        record["9_VALUE"]
-      );
+      let jobVar = record["8_NAME"];
+      if (record["14_CMDLINE"].indexOf(jobVar) == -1) {
+        jobVar = jobVar.indexOf('%%\\') == 0 ? jobVar.replace('%%\\', '%%') : jobVar.replace('%%', '%%\\');
+      }
+      const jobVarReplace = jobVar.indexOf('%%\\') == 0 ? `$(${jobVar.substr(3)})` : `$(${jobVar.substr(2)})`;
+      record["14_CMDLINE"] = record["14_CMDLINE"].replace(jobVar, jobVarReplace);
 
-      record["14_CMDLINE"] = record["14_CMDLINE"].replace(
-        record["8_NAME"],
-        record["9_VALUE"].replace("%%\\", "%%")
-      );
 
       if (record["14_CMDLINE"].includes("%%")) {
-        console.error(i, record["8_NAME"], record["14_CMDLINE"]);
+        console.error(i, {jobVar, jobVarReplace}, record["8_NAME"], record["14_CMDLINE"]);
       }
 
       const job = { ...record, name: jobname };
@@ -182,8 +177,8 @@ $(function () {
         job.typename = 'perl';
         job.progname = job.progname.replace('perl', '');
       }
-      job.progname = $.trim(job.progname.replace(/\/.\//g, '').replace(/\s/g, ' '));
-      job.jobdesc = $.trim(job.jobdesc.replace(/\s/g, ' '));
+      job.progname = $.trim(job.progname.replace(/\/.\//g, '').replace(/^\s+|\s+$/g, ' ').replace(/\t/g, ' '));
+      job.jobdesc = $.trim(job.jobdesc.replace(/^\s+|\s+$/g, ' ').replace(/\t/g, ' '));
       jobnames[job.name] = true;
     }
 
@@ -195,27 +190,28 @@ $(function () {
       all: new Set()
     };
 
-    for(const job of jobinfos) {
-      const { name: jobname, prevs = [], nexts = []} = job;
+    /** 作业关系别名，自由只有输出 */
+    const jobCodtMap = jobinfos.reduce((map, job) => {
+      const { name: jobname, nexts = []} = job;
+      nexts.forEach(next => {
+        map[next] = jobname;
+      });
+      return map;
+    }, {});
 
-      prevs.forEach(prevjobname => {
+    console.log(jobCodtMap);
+
+    for(const job of jobinfos) {
+      const { name: jobname, prevs = []} = job;
+
+      prevs.forEach(prevrelaname => {
+        const prevjobname = jobCodtMap[prevrelaname];
         if (!jobnames[prevjobname]) {
           excludes.prevs.add(prevjobname);
           excludes.all.add(prevjobname);
           return;
         }
         const rela = `${jobname},${prevjobname}`;
-        if (jobrelas.includes(rela)) return;
-        jobrelas.push(rela);
-      });
-
-      nexts.forEach(nextjobname => {
-        if (!jobnames[nextjobname]) {
-          excludes.nexts.add(nextjobname);
-          excludes.all.add(nextjobname);
-          return;
-        };
-        const rela = `${nextjobname},${jobname}`;
         if (jobrelas.includes(rela)) return;
         jobrelas.push(rela);
       });
@@ -244,14 +240,22 @@ $(function () {
     jobrelas.unshift("jobname,prejob");
     const relCsv = jobrelas.join("\n");
     $("#jobrel").val(relCsv);
+  }
+
+  $("#run").click(function () {
+    $('body').addClass('wait');
+    setTimeout(function() {
+      run();
+      $('body').removeClass('wait');
+    }, 0);
   });
 
   $("#btn-csv-info").click(function () {
-    $("#run").click();
+    if (!$("#jobinfo").val()) $("#run").click();
     exportCsv("taskctl_import_jobinfo.csv", $("#jobinfo").val());
   });
   $("#btn-csv-rela").click(function () {
-    $("#run").click();
+    if (!$("#jobrel").val()) $("#run").click();
     exportCsv("taskctl_import_jobrela.csv", $("#jobrel").val());
   });
 });

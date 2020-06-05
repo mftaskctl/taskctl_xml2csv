@@ -3,6 +3,25 @@ html, body {
   overflow: hidden;
 }
 
+body.wait::before {
+  content: "运算中...";
+  display: -webkit-flex;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.3);
+  cursor: wait;
+  font-size: 40px;
+  color: #fff;
+  letter-spacing: 5px;
+}
+
 .layout {
   width: 100vw;
   height: 100vh;
