@@ -3,37 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TASKCTL XML2CVS Tools</title>
-  <link rel="stylesheet" href="./static/index.css"/>
+  <title>TASKCTL Tools</title>
+</head>
 <body>
-  <div class="layout">
-    <div class="layout-left">
-    <div class="nav">
-      <span>TASKCTL XML</span>
-      <button class="btn btn-success" id="run">运行</button>
-    </div>
-    <textarea id="xml" placeholder="请输入"></textarea>
+  <div class="tabs">
+    <div class="tab" onclick="frames[0].location.href='./taskctl/index.html'">TASKCTL</div>
+    <div class="tab" onclick="frames[0].location.href='./control-m/index.html'">Control-M</div>
   </div>
-    <div class="layout-right">
-      <div class="layout-top">
-        <div class="nav">
-          <span>CSV Job关系</span>
-          <button id="btn-csv-rela" class="btn btn-success">导出</button>
-        </div>
-        <textarea id="jobrel" class="area-jobrel" readonly></textarea>
-      </div>
-      <div class="layout-bottom">
-        <div class="nav">
-          <span>CSV Job信息</span>
-          <button id="btn-csv-info" class="btn btn-success">导出</button>
-        </div>
-        <textarea id="jobinfo" class="area-jobinfo" readonly></textarea>
-      </div>
-    </div>
-  </div>
-  <script src="https://cdn.bootcdn.net/ajax/libs/require.js/2.3.6/require.min.js"></script>
-  <!-- <link rel="stylesheet" href="./static/monaco-editor/vs/editor/editor.main.css" /> -->
-  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-  <script src="./static/index.js"></script>
+  <iframe name="frame" src="./taskctl/index.html"></iframe>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+    }
+
+    .tabs {
+      padding-top: 8px;
+      line-height: 40px;
+      background-color: rgba(0, 0, 0, 0.7);
+      font-size: 14px;
+      user-select: none;
+    }
+    .tab {
+      padding: 0 20px;
+      border-radius: 10px 10px 0 0;
+      background-color: coral;
+      opacity: 0.9;
+      color: #fff;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    iframe {
+      width: 100vw;
+      border: 0;
+      height: calc(100vh - 48px);
+      transition: all 0.3s ease;
+    }
+  </style>
 </body>
 </html>
