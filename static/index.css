@@ -1,5 +1,7 @@
-html, body {
-  margin: 0; padding: 0;
+html,
+body {
+  margin: 0;
+  padding: 0;
   overflow: hidden;
 }
 
@@ -16,7 +18,7 @@ body.wait::before {
   left: 0;
   z-index: 100;
   background-color: rgba(0, 0, 0, 0.3);
-  cursor: wait!important;
+  cursor: wait !important;
   font-size: 40px;
   color: #fff;
   letter-spacing: 5px;
@@ -24,29 +26,30 @@ body.wait::before {
 }
 
 body.wait * {
-  cursor: wait!important;
-  pointer-events: none!important;
+  cursor: wait !important;
+  pointer-events: none !important;
 }
 
 .layout {
   width: 100vw;
   height: 100vh;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   display: flex;
   flex-wrap: nowrap;
   position: relative;
 }
 
-.layout > textarea,div {
+.layout > textarea,
+div {
   width: 50%;
   height: 100%;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   display: flex;
   position: relative;
 }
 
 .layout-left {
-  display: -webkit-flex; 
+  display: -webkit-flex;
   display: flex;
   flex-direction: column;
   border-right: 1px solid dimgray;
@@ -55,21 +58,21 @@ body.wait * {
   background-color: rgba(0, 0, 0, 0.85);
   width: 100%;
   height: 100%;
-
 }
 
 .layout-right {
-  display: -webkit-flex; 
+  display: -webkit-flex;
   display: flex;
   flex-direction: column;
   background-color: #fff;
 }
-.layout-top, .layout-bottom {
+.layout-top,
+.layout-bottom {
   height: 50%;
   width: 100%;
   position: relative;
   overflow: hidden;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   display: flex;
   flex-direction: column;
 }
@@ -89,25 +92,24 @@ body.wait * {
   height: 100%;
 }
 
-
 .nav {
   text-indent: 20px;
   position: relative;
   z-index: 99;
   top: 0;
   width: 100%;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   display: flex;
   height: 30px;
   align-items: center;
-  justify-content:space-between;
+  justify-content: space-between;
   color: #fff;
   background-color: seagreen;
   border-bottom: 1px solid gainsboro;
   padding: 5px;
 }
 .nav button {
-  margin-right: 20px;;
+  margin-right: 20px;
 }
 
 textarea {
